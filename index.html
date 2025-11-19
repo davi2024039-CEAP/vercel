@@ -1,15 +1,658 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=<device-width>, initial-scale=1.0">
-    <title>Augusto</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RPG Lab Ciência Descoberta</title>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --prat: #112244;
+    --glow: 0 0 20px #00ffff;
+    --bright: #0ff;
+  }
+  * {
+    margin: 0; padding: 0; box-sizing: border-box;
+  }
+  body {
+    background: var(--bg);
+    color: #e0f7fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .estrelas {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(circle at 20% 80%, #1a3a5a 1px, transparent 1px),
+      radial-gradient(circle at 80% 20%, #1a3a5a 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: twinkle 15s linear infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% {opacity: 0.8;}
+    50% {opacity: 1;}
+  }
+  header {
+    text-align: center;
+    padding: 2rem 1rem;
+    background: linear-gradient(180deg, #0a0e17, #112255);
+    box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
+    position: relative;
+    user-select: none;
+  }
+  header h1 {
+    font-size: 3rem;
+    color: var(--bright);
+    text-shadow: var(--glow);
+    font-weight: 900;
+    letter-spacing: 3px;
+  }
+  header p {
+    font-weight: 600;
+    color: #a0f0ff;
+    margin-top: 0.5rem;
+    font-size: 1.2rem;
+  }
+  #introScreen {
+    position: fixed;
+    inset: 0;
+    background: #001f33cc;
+    color: var(--bright);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    z-index: 1000;
+    text-align: center;
+    font-size: 1.2rem;
+  }
+  #introScreen h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    text-shadow: var(--glow);
+  }
+  #startBtn {
+    margin-top: 1.5rem;
+    background: var(--bright);
+    color: #002222;
+    padding: 1.2rem 4rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    box-shadow: var(--glow);
+  }
+  #startBtn:hover {
+    background: #00cccc;
+  }
+  .lab {
+    max-width: 1000px;
+    margin: 2rem auto 4rem;
+    padding: 0 1rem;
+  }
+  .level-title {
+    font-size: 1.8rem;
+    color: var(--bright);
+    text-align: center;
+    text-shadow: var(--glow);
+    margin-bottom: 1rem;
+  }
+  .prateleira {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+  }
+  .frasco {
+    width: 110px;
+    height: 190px;
+    cursor: pointer;
+    border-radius: 16px;
+    background: var(--prat);
+    box-shadow: 0 0 15px #00ffff33;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .frasco:hover:not(.used) {
+    transform: scale(1.2);
+    box-shadow: 0 0 30px var(--bright);
+    z-index: 10;
+  }
+  .frasco.used {
+    filter: brightness(0.65);
+    cursor: default;
+  }
+  .frasco.used::after {
+    content: "✔";
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    color: var(--bright);
+    font-size: 1.8rem;
+    font-weight: 900;
+    text-shadow: 0 0 8px var(--bright);
+  }
+  .emoji {
+    font-size: 3rem;
+    margin: 10px 0 6px;
+  }
+  .rotulo {
+    color: var(--bright);
+    font-weight: 700;
+    font-size: 1rem;
+    text-align: center;
+    padding: 0 10px;
+  }
+  /* Modal */
+  #modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    backdrop-filter: blur(12px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 1100;
+  }
+  #modal.show {
+    display: flex;
+  }
+  .card {
+    background: var(--prat);
+    padding: 2rem;
+    border-radius: 20px;
+    max-width: 480px;
+    width: 100%;
+    color: var(--bright);
+    position: relative;
+    box-shadow: var(--glow);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .card h3 {
+    text-align: center;
+    margin-bottom: 1rem;
+    font-size: 2rem;
+  }
+  .ingredientes, .passos {
+    padding-left: 1.2rem;
+    margin-bottom: 1rem;
+  }
+  .ingredientes li {
+    background: #00293499;
+    margin-bottom: 6px;
+    padding: 8px 10px;
+    border-left: 4px solid var(--bright);
+    border-radius: 6px;
+  }
+  .passos li {
+    margin-bottom: 10px;
+    counter-increment: step;
+    position: relative;
+  }
+  .passos {
+    counter-reset: step;
+  }
+  .passos li::before {
+    content: counter(step);
+    position: absolute;
+    left: -1.5rem;
+    background: var(--bright);
+    color: #000;
+    font-weight: 700;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 28px;
+  }
+  .fechar {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--bright);
+    border: none;
+    border-radius: 50%;
+    color: #000;
+    font-size: 1.5rem;
+    font-weight: 900;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+  }
+  .video {
+    width: 100%;
+    height: 210px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  /* Scoreboard */
+  #scoreBoard {
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    background: rgba(0, 255, 255, 0.2);
+    padding: 12px 22px;
+    border-radius: 24px;
+    font-weight: 700;
+    color: var(--bright);
+    text-shadow: var(--glow);
+    user-select: none;
+    font-size: 1.4rem;
+    z-index: 1001;
+  }
+  /* Feedback message */
+  #feedback {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #00ffffcc;
+    padding: 12px 25px;
+    border-radius: 30px;
+    font-weight: 700;
+    color: #002222;
+    box-shadow: var(--glow);
+    display: none;
+    z-index: 1001;
+  }
+  #feedback.show {
+    display: block;
+  }
+  /* Quiz Modal */
+  #quizModal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    backdrop-filter: blur(12px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 1100;
+  }
+  #quizModal.show {
+    display: flex;
+  }
+</style>
 </head>
 <body>
-    <center>
-        <h1>Site Vercel</h1>
-        <h2>Professor Augusto</h2>
-    </center>
-</body>
+<div class="estrelas"></div>
+<header>
+  <h1>🧪 RPG Lab Ciência Descoberta</h1>
+  <p>Descubra segredos científicos para completar experimentos e subir de nível!</p>
+</header>
 
+<div id="introScreen">
+  <h2>Bem-vindo, Aventureiro da Ciência!</h2>
+  <p>Neste RPG, você é um aprendiz que deve descobrir conceitos científicos para desbloquear experimentos, ganhar XP e subir de nível.<br>
+     Clique em um frasco para enfrentar um desafio científico.<br>
+     Responda corretamente para completar o experimento e avançar.<br>
+     Complete todos os níveis para se tornar um Mestre Cientista!</p>
+  <button id="startBtn">Iniciar Aventura</button>
+</div>
+
+<div id="scoreBoard">XP: 0 | Nível: 1</div>
+<div id="feedback"></div>
+
+<main class="lab" style="display:none;">
+
+  <!-- NÍVEL 1 -->
+  <section>
+    <h2 class="level-title">🌋 Vulcões & Explosões</h2>
+    <div class="prateleira" id="nivel1">
+      <div class="frasco" data-nome="Vulcão Clássico" data-id="vulcao" data-cor="#ff4500" title="Vulcão Clássico">
+        <div class="emoji">🌋</div>
+        <div class="rotulo">Vulcão</div>
+      </div>
+      <div class="frasco" data-nome="Elefante de Pasta" data-id="elefante" data-cor="#ff69b4" title="Elefante de Pasta">
+        <div class="emoji">🦣</div>
+        <div class="rotulo">Elefante</div>
+      </div>
+      <div class="frasco" data-nome="Foguete Ácido" data-id="foguete" data-cor="#00ff00" title="Foguete Ácido">
+        <div class="emoji">🚀</div>
+        <div class="rotulo">Foguete</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NÍVEL 2 -->
+  <section>
+    <h2 class="level-title">🌈 Cores & Luz</h2>
+    <div class="prateleira" id="nivel2">
+      <div class="frasco" data-nome="Lava Lamp" data-id="lava" data-cor="#ff00ff" title="Lava Lamp">
+        <div class="emoji">💡</div>
+        <div class="rotulo">Lava Lamp</div>
+      </div>
+      <div class="frasco" data-nome="Repolho Indicador" data-id="repolho" data-cor="#9400d3" title="Repolho Indicador">
+        <div class="emoji">🥬</div>
+        <div class="rotulo">pH Mágico</div>
+      </div>
+      <div class="frasco" data-nome="Tinta Invisível" data-id="invisivel" data-cor="#ffff00" title="Tinta Invisível">
+        <div class="emoji">🕵️</div>
+        <div class="rotulo">Invisível</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NÍVEL 3 -->
+  <section>
+    <h2 class="level-title">❄️ Cristais & Gelo</h2>
+    <div class="prateleira" id="nivel3">
+      <div class="frasco" data-nome="Cristal em 2h" data-id="cristal" data-cor="#00ffff" title="Cristal em 2h">
+        <div class="emoji">💎</div>
+        <div class="rotulo">Cristal Rápido</div>
+      </div>
+      <div class="frasco" data-nome="Gelo Quente" data-id="gelo" data-cor="#87ceeb" title="Gelo Quente">
+        <div class="emoji">🔥❄️</div>
+        <div class="rotulo">Gelo Quente</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Modal receita -->
+<div id="modal">
+  <div class="card">
+    <button class="fechar" title="Fechar">×</button>
+    <h3 id="titulo"></h3>
+    <div class="video"></div>
+    <p><b>Ingredientes:</b></p>
+    <ul class="ingredientes" id="ing"></ul>
+    <p><b>Passo a passo:</b></p>
+    <ol class="passos" id="passos"></ol>
+    <p><b>Segurança:</b> Óculos + pia + adulto por perto!</p>
+  </div>
+</div>
+
+<!-- Quiz Modal -->
+<div id="quizModal">
+  <div class="card">
+    <button class="fechar" id="quizClose" title="Fechar">×</button>
+    <h3 id="quizTitle"></h3>
+    <p id="quizQuestion"></p>
+    <div id="options"></div>
+  </div>
+</div>
+
+<script>
+  const recipes = {
+    vulcao: {
+      nome: "Vulcão Clássico",
+      ing: ["1/2 xícara de bicarbonato", "1/2 xícara de vinagre", "Corante vermelho", "Detergente"],
+      passos: ["Coloque bicarbonato no copo","Adicione 3 gotas de detergente","Pingue corante","Despeje vinagre e FUJA!"],
+      video: "https://www.youtube.com/embed/0yOznKmgpxQ",
+      ingredientesIds: ["vulcao"]
+    },
+    elefante: {
+      nome: "Elefante de Pasta",
+      ing: ["1 garrafa PET pequena","100ml água oxigenada 10vol","5 gotas detergente","Corante","1 colher fermento"],
+      passos: ["Misture água oxigenada + detergente + corante na garrafa","Adicione fermento","Feche os olhos e veja a pasta explodir!"],
+      video: "https://www.youtube.com/embed/PygjKCTcwqY",
+      ingredientesIds: ["elefante"]
+    },
+    foguete: {
+      nome: "Foguete Ácido",
+      ing: ["Filme de PVC","3 colheres bicarbonato","1/2 xícara vinagre"],
+      passos: ["Enrole bicarbonato no filme","Coloque no gargalo da garrafa com vinagre","Tampe rápido e solte no chão!"],
+      video: "https://www.youtube.com/embed/5MdUyZwaFfQ",
+      ingredientesIds: ["foguete"]
+    },
+    lava: {
+      nome: "Lava Lamp",
+      ing: ["Óleo vegetal","Água","Corante alimentício","Comprimido efervescente"],
+      passos: ["Encha 3/4 com óleo","Complete com água colorida","Jogue 1/2 comprimido e veja as bolhas!"],
+      video: "https://www.youtube.com/embed/TU4aS5KgVxU",
+      ingredientesIds: ["lava"]
+    },
+    repolho: {
+      nome: "Repolho Indicador",
+      ing: ["1/4 repolho roxo","Água quente","Vinagre, bicarbonato, suco de limão"],
+      passos: ["Ferva repolho 10min","Filtre o suco roxo","Adicione ácidos/bases e veja a cor mudar!"],
+      video: "https://www.youtube.com/embed/cMUzErlnWqs",
+      ingredientesIds: ["repolho"]
+    },
+    invisivel: {
+      nome: "Tinta Invisível",
+      ing: ["Suco de limão","Cotonete","Lâmpada quente"],
+      passos: ["Escreva com limão no papel","Seque","Aqueça com lâmpada → mensagem aparece!"],
+      video: "https://www.youtube.com/embed/OsoWhR8dny4",
+      ingredientesIds: ["invisivel"]
+    },
+    cristal: {
+      nome: "Cristal em 2h",
+      ing: ["200ml água quente","6 colheres de bórax","Barbante + palito"],
+      passos: ["Dissolva bórax na água","Pendure barbante","Em 2h: cristais gigantes!"],
+      video: "https://www.youtube.com/embed/4noaFzKoT1c",
+      ingredientesIds: ["cristal"]
+    },
+    gelo: {
+      nome: "Gelo Quente",
+      ing: ["Álcool isopropílico","Água gelada","Luvas"],
+      passos: ["Misture 1:1 álcool + água","Coloque mão com luva → água congela na hora!"],
+      video: "https://www.youtube.com/embed/KUwkXNYF6dY",
+      ingredientesIds: ["gelo"]
+    }
+  };
+
+  const quizzes = {
+    vulcao: {
+      question: "Qual gás é produzido na reação entre bicarbonato de sódio e vinagre?",
+      options: ["A) Oxigênio", "B) Dióxido de carbono", "C) Hidrogênio", "D) Nitrogênio"],
+      correct: "B"
+    },
+    elefante: {
+      question: "Qual substância atua como catalisador na decomposição da água oxigenada?",
+      options: ["A) Detergente", "B) Corante", "C) Fermento", "D) Bicarbonato"],
+      correct: "C"
+    },
+    foguete: {
+      question: "O que impulsiona o foguete para cima nesse experimento?",
+      options: ["A) Calor", "B) Pressão do gás", "C) Força gravitacional", "D) Eletricidade"],
+      correct: "B"
+    },
+    lava: {
+      question: "Por que as bolhas coloridas sobem e descem na lava lamp caseira?",
+      options: ["A) Devido à diferença de densidade e reação química", "B) Por magnetismo", "C) Por evaporação", "D) Por congelamento"],
+      correct: "A"
+    },
+    repolho: {
+      question: "O suco de repolho roxo é usado como?",
+      options: ["A) Corante permanente", "B) Indicador de pH", "C) Catalisador", "D) Adoçante"],
+      correct: "B"
+    },
+    invisivel: {
+      question: "Por que a tinta de limão se torna visível ao aquecer?",
+      options: ["A) Evaporação", "B) Reação com o ar", "C) Carbonização do açúcar", "D) Fluorescência"],
+      correct: "C"
+    },
+    cristal: {
+      question: "Os cristais de bórax se formam devido a?",
+      options: ["A) Evaporação rápida", "B) Solução supersaturada ao resfriar", "C) Reação ácida", "D) Pressão alta"],
+      correct: "B"
+    },
+    gelo: {
+      question: "O 'gelo quente' envolve a cristalização exotérmica de uma solução supersaturada. Qual é o processo principal?",
+      options: ["A) Congelamento", "B) Cristalização", "C) Sublimação", "D) Destilação"],
+      correct: "B"
+    }
+  };
+
+  const introScreen = document.getElementById('introScreen');
+  const lab = document.querySelector('main.lab');
+  const scoreBoard = document.getElementById('scoreBoard');
+  const modal = document.getElementById('modal');
+  const modalTitle = document.getElementById('titulo');
+  const modalIngredients = document.getElementById('ing');
+  const modalPassos = document.getElementById('passos');
+  const modalVideo = modal.querySelector('.video');
+  const closeBtn = modal.querySelector('.fechar');
+  const feedback = document.getElementById('feedback');
+  const quizModal = document.getElementById('quizModal');
+  const quizTitle = document.getElementById('quizTitle');
+  const quizQuestion = document.getElementById('quizQuestion');
+  const optionsDiv = document.getElementById('options');
+  const quizClose = document.getElementById('quizClose');
+
+  let score = 0;
+  let currentLevel = 1;
+  let playerLevel = 1;
+  let completedRecipes = new Set();
+
+  // Inicia o jogo
+  document.getElementById('startBtn').addEventListener('click', () => {
+    introScreen.style.display = 'none';
+    lab.style.display = 'block';
+    updateScoreBoard();
+    showLevel(currentLevel);
+  });
+
+  // Mostrar só as prateleiras do nível corrente
+  function showLevel(level){
+    const sections = lab.querySelectorAll('section');
+    sections.forEach((sec, i) => {
+      sec.style.display = (i === level-1) ? 'block' : 'none';
+    });
+    feedbackHide();
+  }
+
+  // Atualiza scoreboard
+  function updateScoreBoard(){
+    scoreBoard.textContent = `XP: ${score} | Nível: ${playerLevel}`;
+  }
+
+  // Mostra feedback temporário
+  function feedbackShow(msg){
+    feedback.textContent = msg;
+    feedback.classList.add('show');
+    setTimeout(() => feedback.classList.remove('show'), 2500);
+  }
+  function feedbackHide(){
+    feedback.classList.remove('show');
+  }
+
+  // Controla cliques nos frascos
+  lab.querySelectorAll('.frasco').forEach(frasco => {
+    frasco.addEventListener('click', () => {
+      if(frasco.classList.contains('used')) return;
+      const id = frasco.dataset.id;
+      showQuiz(id);
+    });
+  });
+
+  // Mostra quiz
+  function showQuiz(key){
+    const q = quizzes[key];
+    quizTitle.textContent = `Descubra o Segredo de ${recipes[key].nome}`;
+    quizQuestion.textContent = q.question;
+    optionsDiv.innerHTML = '';
+    q.options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.textContent = opt;
+      btn.style.margin = '5px';
+      btn.style.padding = '10px';
+      btn.style.background = 'cyan';
+      btn.style.color = 'black';
+      btn.style.border = 'none';
+      btn.style.borderRadius = '5px';
+      btn.style.cursor = 'pointer';
+      btn.style.width = '100%';
+      btn.addEventListener('click', () => {
+        const choice = opt.charAt(0);
+        if(choice === q.correct){
+          feedbackShow("Correto! Você descobriu o segredo científico!");
+          completeRecipe(key);
+        } else {
+          feedbackShow("Errado! Tente novamente.");
+        }
+        quizModal.classList.remove('show');
+      });
+      optionsDiv.appendChild(btn);
+    });
+    quizModal.classList.add('show');
+  }
+
+  // Completa receita
+  function completeRecipe(key){
+    completedRecipes.add(key);
+    score += 10;
+    updateScoreBoard();
+    markUsed(key);
+    showRecipeModal(key);
+
+    const totalNivel = document.querySelectorAll(`#nivel${currentLevel} .frasco`).length;
+    if(completedRecipes.size === totalNivel + levelsCompletedBefore()){
+      feedbackShow(`Parabéns! Você completou o nível ${currentLevel}.`);
+      playerLevel++;
+      updateScoreBoard();
+      if(currentLevel < 3){
+        currentLevel++;
+        setTimeout(() => {
+          showLevel(currentLevel);
+          feedbackShow(`Bem-vindo ao nível ${currentLevel}! Continue descobrindo!`);
+        }, 1600);
+      } else {
+        setTimeout(() => {
+          alert("Parabéns, Mestre Cientista! Você completou todos os níveis e descobriu todos os segredos da ciência!");
+          location.reload();
+        }, 1600);
+      }
+    }
+  }
+
+  // Calcula total de receitas completadas em níveis anteriores
+  function levelsCompletedBefore(){
+    let count = 0;
+    if(currentLevel > 1){
+      for(let lvl=1; lvl<currentLevel; lvl++){
+        count += document.querySelectorAll(`#nivel${lvl} .frasco`).length;
+      }
+    }
+    return count;
+  }
+
+  // Mostra modal com receita
+  function showRecipeModal(key){
+    const r = recipes[key];
+    modalTitle.textContent = r.nome;
+    modalIngredients.innerHTML = r.ing.map(ing => `<li>${ing}</li>`).join('');
+    modalPassos.innerHTML = r.passos.map(p => `<li>${p}</li>`).join('');
+    modalVideo.innerHTML = `<iframe src="${r.video}" title="${r.nome}" frameborder="0" allowfullscreen></iframe>`;
+    modal.classList.add('show');
+  }
+
+  // Marca frascos usados (completos) com estilo
+  function markUsed(key){
+    const r = recipes[key];
+    r.ingredientesIds.forEach(id=>{
+      const frasco = document.querySelector(`.frasco[data-id="${id}"]`);
+      frasco.classList.add('used');
+    });
+  }
+
+  // Fecha modals
+  closeBtn.addEventListener('click', () => {
+    modal.classList.remove('show');
+  });
+  quizClose.addEventListener('click', () => {
+    quizModal.classList.remove('show');
+  });
+</script>
+
+</body>
 </html>
